@@ -4,6 +4,7 @@ from typing import Optional, Sequence
 import copy
 import numpy as np
 import torch
+from typing import List
 
 import pytorch_kinematics.transforms as tf
 from pytorch_kinematics import jacobian
@@ -89,9 +90,9 @@ class Chain:
         self.joint_indices = []
         self.n_joints = len(self.get_joint_parameter_names())
         self.axes = torch.zeros([self.n_joints, 3], dtype=self.dtype, device=self.device)
-        self.link_offsets = []
-        self.joint_offsets = []
-        self.joint_type_indices = []
+        self.link_offsets: List[torch.Tensor] = []
+        self.joint_offsets: List[torch.Tensor] = []
+        self.joint_type_indices: List[int] = []
         queue = []
         queue.insert(-1, (self._root, -1, 0))  # the root has no parent so we use -1.
         idx = 0
@@ -196,7 +197,7 @@ class Chain:
             joints.extend(Chain._get_joints(child))
         return joints
 
-    def get_joints(self, exclude_fixed=True):
+    def get_joints(self, exclude_fixed=True) -> List[Joint]:
         joints = self._get_joints(self._root, exclude_fixed=exclude_fixed)
         return joints
 
@@ -262,7 +263,7 @@ class Chain:
             links.extend(Chain._get_links(child))
         return links
 
-    def get_links(self):
+    def get_links(self) -> List[Link]:
         links = self._get_links(self._root)
         return links
 

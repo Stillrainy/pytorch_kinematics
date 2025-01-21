@@ -1,4 +1,5 @@
 import torch
+from typing import Optional, Tuple, List
 
 import pytorch_kinematics.transforms as tf
 from pytorch_kinematics.transforms import axis_and_angle_to_matrix_33
@@ -7,7 +8,10 @@ from pytorch_kinematics.transforms import axis_and_angle_to_matrix_33
 class Visual(object):
     TYPES = ['box', 'cylinder', 'sphere', 'capsule', 'mesh']
 
-    def __init__(self, offset=None, geom_type=None, geom_param=None):
+    def __init__(self,
+                 offset: Optional[tf.Transform3d] = None,
+                 geom_type: str = None,
+                 geom_param=None):
         if offset is None:
             self.offset = None
         else:
@@ -22,7 +26,10 @@ class Visual(object):
 
 
 class Link(object):
-    def __init__(self, name=None, offset=None, visuals=()):
+    def __init__(self,
+                 name: Optional[str] = None,
+                 offset: Optional[tf.Transform3d] = None,
+                 visuals: List[Visual] = ()):
         if offset is None:
             self.offset = None
         else:
@@ -44,8 +51,14 @@ class Link(object):
 class Joint(object):
     TYPES = ['fixed', 'revolute', 'prismatic']
 
-    def __init__(self, name=None, offset=None, joint_type='fixed', axis=(0.0, 0.0, 1.0),
-                 dtype=torch.float32, device="cpu", limits=None):
+    def __init__(self,
+                 name: Optional[str] = None,
+                 offset: Optional[tf.Transform3d] = None,
+                 joint_type: str = 'fixed',
+                 axis: Tuple[float, ...] = (0.0, 0.0, 1.0),
+                 dtype: torch.dtype = torch.float32,
+                 device: torch.device = "cpu",
+                 limits=None):
         if offset is None:
             self.offset = None
         else:
@@ -93,7 +106,11 @@ tee =    '├── '
 last =   '└── '
 
 class Frame(object):
-    def __init__(self, name=None, link=None, joint=None, children=None):
+    def __init__(self,
+                 name: str = None,
+                 link: Link = None,
+                 joint: Joint = None,
+                 children=None):
         self.name = 'None' if name is None else name
         self.link = link if link is not None else Link()
         self.joint = joint if joint is not None else Joint()
