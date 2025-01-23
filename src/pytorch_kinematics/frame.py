@@ -11,18 +11,21 @@ class Visual(object):
     def __init__(self,
                  offset: Optional[tf.Transform3d] = None,
                  geom_type: str = None,
-                 geom_param=None):
+                 geom_param=None,
+                 geom_color: Tuple[float, ...] = None):
         if offset is None:
             self.offset = None
         else:
             self.offset = offset
         self.geom_type = geom_type
         self.geom_param = geom_param
+        self.geom_color = geom_color
 
     def __repr__(self):
-        return "Visual(offset={0}, geom_type='{1}', geom_param={2})".format(self.offset,
-                                                                            self.geom_type,
-                                                                            self.geom_param)
+        return "Visual(offset={0}, geom_type='{1}', geom_param={2}, geom_color={3})".format(self.offset,
+                                                                                               self.geom_type,
+                                                                                               self.geom_param,
+                                                                                               self.geom_color)
 
 
 class Link(object):

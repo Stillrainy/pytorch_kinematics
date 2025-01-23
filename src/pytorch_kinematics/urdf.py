@@ -18,7 +18,7 @@ def _convert_transform(origin):
         return tf.Transform3d(rot=tf.quaternion_from_euler(rpy, "sxyz"), pos=origin.xyz)
 
 
-def _convert_visual(visual):
+def _convert_visual(visual, materials=None):
     if visual is None or visual.geometry is None:
         return frame.Visual()
     else:
@@ -38,10 +38,18 @@ def _convert_visual(visual):
         else:
             g_type = None
             g_param = None
-        return frame.Visual(v_tf, g_type, g_param)
+
+        if visual.material.color is not None:
+            g_color = visual.material.color.rgba
+        elif visual.material.name is not None:
+            g_color = materials[visual.material.name]
+        else:
+            g_color = None
+
+        return frame.Visual(v_tf, g_type, g_param, g_color)
 
 
-def _build_chain_recurse(root_frame, lmap, joints):
+def _build_chain_recurse(root_frame, lmap, joints, materials):
     children = []
     for j in joints:
         if j.parent == root_frame.link.name:
@@ -54,8 +62,8 @@ def _build_chain_recurse(root_frame, lmap, joints):
                                             joint_type=JOINT_TYPE_MAP[j.type], axis=j.axis, limits=limits)
             link = lmap[j.child]
             child_frame.link = frame.Link(link.name, offset=_convert_transform(link.origin),
-                                          visuals=[_convert_visual(link.visual)])
-            child_frame.children = _build_chain_recurse(child_frame, lmap, joints)
+                                          visuals=[_convert_visual(link.visual, materials)])
+            child_frame.children = _build_chain_recurse(child_frame, lmap, joints, materials)
             children.append(child_frame)
     return children
 
@@ -94,6 +102,8 @@ def build_chain_from_urdf(data):
     robot = URDF.from_xml_string(data)
     lmap = robot.link_map
     joints = robot.joints
+    materials = {
+        material.name: material.color.rgba for material in robot.materials}
     n_joints = len(joints)
     has_root = [True for _ in range(len(joints))]
     for i in range(n_joints):
@@ -108,9 +118,10 @@ def build_chain_from_urdf(data):
             break
     root_frame = frame.Frame(root_link.name)
     root_frame.joint = frame.Joint()
-    root_frame.link = frame.Link(root_link.name, _convert_transform(root_link.origin),
-                                 [_convert_visual(root_link.visual)])
-    root_frame.children = _build_chain_recurse(root_frame, lmap, joints)
+    root_frame.link = frame.Link(root_link.name,
+                                 _convert_transform(root_link.origin),
+                                 [_convert_visual(root_link.visual, materials)])
+    root_frame.children = _build_chain_recurse(root_frame, lmap, joints, materials)
     return chain.Chain(root_frame)
 
 
