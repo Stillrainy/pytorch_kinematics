@@ -43,6 +43,9 @@ class Link(object):
     def to(self, *args, **kwargs):
         if self.offset is not None:
             self.offset = self.offset.to(*args, **kwargs)
+        for visual in self.visuals:
+            if visual.offset is not None:
+                visual.offset = visual.offset.to(*args, **kwargs)
         return self
 
     def __repr__(self):
